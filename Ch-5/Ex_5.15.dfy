@@ -61,18 +61,19 @@ lemma {:induction false} EvalSubstituteList(
 
     calc{
     EvalList(SubstituteList(args, n, c), op, env);
-    == // def. SubstituteList
-    EvalList(
-      match args
-      case Nil => Nil
-      case Cons(e, tail) =>
-        Cons(Substitute(e, n, c), SubstituteList(tail, n, c)),
-      op, 
-      env)
-      ;
+    == // def. EvalList
+    match args
+  case Nil =>
+    (match op case Add => 0 case Mul => 1)
+  case Cons(e, tail) =>
+    var v0, v1 := Eval(e, env), EvalList(tail, op, env);
+    match op
+    case Add => v0 + v1
+    case Mul => v0 * v1
+    == {EvalSubstitute(args, n, c, env);}
+    
     ==
     EvalList(args, op, env[n := c]);
-
     }
 }
 
