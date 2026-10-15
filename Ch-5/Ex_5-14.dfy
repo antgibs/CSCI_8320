@@ -26,7 +26,7 @@ function Oceanize(t: BYTree): BYTree{
     case _ => BlueLeaf
 }
 
-// Prove a lemma that shows BluCount(t) <= BlueCount(Oceanize(t))
+// Prove a lemma that shows BlueCount(t) <= BlueCount(Oceanize(t))
 lemma {:induction false} BlueIncrease(t: BYTree) 
 ensures BlueCount(t) <= BlueCount(Oceanize(t))
 {
@@ -37,14 +37,12 @@ ensures BlueCount(t) <= BlueCount(Oceanize(t))
     case Node(_,_) =>
         calc {
             BlueCount(t) <= BlueCount(Oceanize(t));
-        == // def. Node
-            BlueCount(Node(t.l, t.r)) <= BlueCount(Oceanize(Node(t.l, t.r)));
-        == // def. BlueCount
-            BlueCount(t.l) + BlueCount(t.r) <= BlueCount(Oceanize(t.l)) + BlueCount(Oceanize(t.r));
-        == // BlueCount(t) = BlueCount(Oceanize(t)) - BlueCount(ReverseColors(t))
-            (BlueCount(Oceanize(t.l)) - BlueCount(ReverseColors(t.l))) + (BlueCount(Oceanize(t.r)) - BlueCount(ReverseColors(t.r))) <=  BlueCount(Oceanize(t.l)) + BlueCount(Oceanize(t.r));
-        == //  BlueCount(Oceanize(t)) = Leafcount(Oceanize(t))
-            BlueCount(t.l) + BlueCount(t.r) <=  LeafCount(Oceanize(t.l)) + LeafCount(t.r);
+        == { ReverseDifference(t); }
+            BlueCount(Oceanize(t)) - BlueCount(ReverseColors(t)) <= BlueCount(Oceanize(t));
+        == // Add BlueCount(ReverseColors(t)) to both sides
+            BlueCount(Oceanize(t)) <= BlueCount(Oceanize(t)) + BlueCount(ReverseColors(t));
+        == // Subtract BlueCount(Oceanize(t)) from both sides
+            0 <= BlueCount(ReverseColors(t));
         }
 }
 
@@ -52,20 +50,46 @@ ensures BlueCount(t) <= BlueCount(Oceanize(t))
 
 lemma {:induction false} ReverseDifference(t: BYTree)
 ensures BlueCount(t) == BlueCount(Oceanize(t)) - BlueCount(ReverseColors(t))
-{}
-
-lemma {:induction false} BlueOceanTotal(t: BYTree)
-ensures BlueCount(Oceanize(t)) == LeafCount(t)
 {
     match t
     case BlueLeaf =>
     case YellowLeaf =>
-    case Node(_,_) =>
+    case Node(_,_) => 
         calc {
-            BlueCount(Oceanize(t));
-        == 
-
-        ==
-            LeafCount(t);
+            BlueCount(Oceanize(t)) - BlueCount(ReverseColors(t));
+        == // def. Node
+            BlueCount(Oceanize(Node(t.l, t.r))) - BlueCount(ReverseColors(Node(t.l, t.r)));
+        == // dist. Oceanize
+            BlueCount(Node(Oceanize(t.l), Oceanize(t.r))) - BlueCount(ReverseColors(Node(t.l, t.r)));
+        == // dist. ReverseColors
+            BlueCount(Node(Oceanize(t.l), Oceanize(t.r))) - BlueCount(Node(ReverseColors(t.l), ReverseColors(t.r)));
+        == // def. BlueCount
+            (BlueCount(Oceanize(t.l)) + BlueCount(Oceanize(t.r))) - (BlueCount(ReverseColors(t.l)) + BlueCount(ReverseColors(t.r)));
+        == // Rearrange
+            BlueCount(Oceanize(t.l)) - BlueCount(ReverseColors(t.l)) + BlueCount(Oceanize(t.r)) - BlueCount(ReverseColors(t.r));
+        == { ReverseDifference(t.l); }
+            BlueCount(t.l) + BlueCount(Oceanize(t.r)) - BlueCount(ReverseColors(t.r));
+        == { ReverseDifference(t.r); }
+            BlueCount(t.l) + BlueCount(t.r); 
+        == // def BlueCount
+            BlueCount(t);
         }
 }
+
+/* Lemma below is no longer needed */
+
+// lemma {:induction false} BlueOceanTotal(t: BYTree)
+// ensures BlueCount(Oceanize(t)) == LeafCount(t)
+// {
+//     match t
+//     case BlueLeaf =>
+//     case YellowLeaf =>
+//     case Node(_,_) =>
+//         calc {
+//             BlueCount(Oceanize(t));
+//         == { ReverseDifference(t); }
+//             BlueCount(t) + BlueCount(ReverseColors(t));
+//         ==
+//             LeafCount(t);
+//         }
+// }
