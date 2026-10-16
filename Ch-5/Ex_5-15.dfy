@@ -55,26 +55,13 @@ lemma {:induction false} EvalSubstituteList(
   ensures EvalList(SubstituteList(args, n, c), op, env)
        == EvalList(args, op, env[n := c])
 {
-  match args
-  case Nil =>
-  case Cons(e, tail) =>
-
-    calc{
-    EvalList(SubstituteList(args, n, c), op, env);
-    == // def. EvalList
-    match args
-  case Nil =>
-    (match op case Add => 0 case Mul => 1)
-  case Cons(e, tail) =>
-    var v0, v1 := Eval(e, env), EvalList(tail, op, env);
-    match op
-    case Add => v0 + v1
-    case Mul => v0 * v1
-    == {EvalSubstitute(args, n, c, env);}
-    
-    ==
-    EvalList(args, op, env[n := c]);
-    }
+  calc { 
+  EvalList(SubstituteList(args, n, c), op, env);
+  == // def. SubstituteList
+  EvalList(Cons(Substitute(args.head, n, c), SubstituteList(args.tail, n, c)), op, env);
+  ==
+  EvalList(args, op, env[n := c]);
+  }
 }
 
 function Unit(op: Op): nat {

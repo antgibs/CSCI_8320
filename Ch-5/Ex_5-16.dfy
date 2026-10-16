@@ -72,10 +72,9 @@ lemma EvalEnv(e: Expr, n:string, env: map<string, nat>)
         Eval(e, env);
         ==
         match e
-        case Const(c) => c
-        case Var(s) => if s in env.Keys then env[s] else 0
-        case Node(op, args) => EvalList(args, op, env)
-        ;
+          case Const(_) => e
+          case Var(s) => if s == n then Const(c) else e
+          case Node(op, args) => Node(op, SubstituteList(args, n, c));
         == 
         Eval(Substitute(e, n, env[n]), env);
     }
