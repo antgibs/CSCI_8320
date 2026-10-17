@@ -67,42 +67,40 @@ lemma EvalEnvDefault(e: Expr, n: string, env: map<string,nat>)
     requires n !in env.Keys
     ensures Eval(e, env) == Eval(Substitute(e, n, 0), env)
 {
+    // Try to match args before calc
     calc
     {
+      assert n !in env.Keys;
         Eval(Substitute(e, n, 0), env);
-        == // def. Substitute => Var(s)
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => if s == n then Const(0) else e
-            case Node(op, args) => Node(op, SubstituteList(args, n, 0)),
-            env);
-        == // case Var(s) always => e
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => e
-            case Node(op, args) => Node(op, SubstituteList(args, n, 0)),
-            env);
-        == // def. SubstituteList
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => e
-            case Node(op, args) => Node(op, 
-                  match args
-                    case Nil => Nil
-                    case Cons(e, tail) =>
-                        Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))),
-                    env);
-        == // def. Substitute
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => e
-            case Node(op, args) => Node(op, 
-                  match args
-                    case Nil => Nil
-                    case Cons(e, tail) =>
-                        Cons(e, SubstituteList(tail, n, 0))),
-                    env);
-
+        == { EvalSubstitute(e, n, 0, env); }
+        Eval(e, env[n := 0]);
+        == // def. Eval
+        match e
+        case Const(c) => c
+        case Var(s) => if s in env.Keys then env[n := 0][s] else 0
+        case Node(op, args) => EvalList(args, op, env[n := 0]);
+        == // def. EvalList
+        match e
+        case Const(c) => c
+        case Var(s) => if s in env.Keys then env[n := 0][s] else 0
+        case Node(op, args) => // EvalList expansion
+          match args
+          case Nil => (match op case Add => 0 case Mul => 1)
+          case Cons(e, tail) => var v0, v1 := Eval(e, env[n := 0]), EvalList(tail, op, env[n := 0]);
+          match op
+          case Add => v0 + v1
+          case Mul => v0 * v1;
+        == { EvalSubstitute(e, n, 0, env); } // Trying EvalSubstitute in reverse
+        match e
+        case Const(c) => c
+        case Var(s) => if s in env.Keys then env[n := 0][s] else 0
+        case Node(op, args) => // EvalList expansion
+          match args
+          case Nil => (match op case Add => 0 case Mul => 1)
+          case Cons(e, tail) => var v0, v1 := Eval(Substitute(e, n, 0), env), EvalList(tail, op, env[n := 0]);
+          match op
+          case Add => v0 + v1
+          case Mul => v0 * v1;
         ==
         Eval(e, env);
     }
