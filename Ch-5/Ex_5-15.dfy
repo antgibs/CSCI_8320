@@ -55,12 +55,18 @@ lemma {:induction false} EvalSubstituteList(
   ensures EvalList(SubstituteList(args, n, c), op, env)
        == EvalList(args, op, env[n := c])
 {
+  match args
+  case Nil =>
+  case Cons(e, tail) =>
   calc { 
-  EvalList(SubstituteList(args, n, c), op, env);
-  == // def. SubstituteList
-  EvalList(Cons(Substitute(args.head, n, c), SubstituteList(args.tail, n, c)), op, env);
-  ==
-  EvalList(args, op, env[n := c]);
+    EvalList(SubstituteList(args, n, c), op, env);
+    == // args == Cons(e, tail)
+    EvalList(SubstituteList(Cons(e, tail), n, c), op, env);
+    == // def. SubstituteList
+    EvalList(Cons(Substitute(e, n, c), 
+      SubstituteList(tail, n, c)), op, env);
+    ==
+    EvalList(args, op, env[n := c]);
   }
 }
 
