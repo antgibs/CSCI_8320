@@ -65,10 +65,35 @@ lemma {:induction false} EvalSubstituteList(
     == // def. SubstituteList
     EvalList(Cons(Substitute(e, n, c), 
       SubstituteList(tail, n, c)), op, env);
-    ==
+    == // def. EvalList
+    var v0, v1 :=
+      Eval(Substitute(e, n, c), env),
+      EvalList(SubstituteList(tail, n, c), op, env);
+      match op
+        case Add => v0 + v1
+        case Mul => v0 * v1;
+    == { EvalSubstitute(e, n, c, env);} // Replace n in the HEAD environment with c
+    var v0, v1 :=
+      Eval(e, env[n := c]), // Replacment here
+      EvalList(SubstituteList(tail, n, c), op, env);
+      match op
+        case Add => v0 + v1
+        case Mul => v0 * v1;
+    == { EvalSubstituteList(tail, op, n, c, env); } // Replace n in the TAIL environment with c
+      var v0, v1 :=
+        Eval(e, env[n := c]),
+        EvalList(tail, op, env[n := c]); // Replacement here
+      match op
+        case Add => v0 + v1
+        case Mul => v0 * v1;
+    == // def. EvalList
+    EvalList(Cons(e, tail), op, env[n := c]);
+    == // args == Cons(e, tail)
     EvalList(args, op, env[n := c]);
   }
 }
+
+// Code below not used for this exercise.
 
 function Unit(op: Op): nat {
   match op case Add => 0 case Mul => 1
