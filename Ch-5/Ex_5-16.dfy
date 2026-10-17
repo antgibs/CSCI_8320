@@ -67,15 +67,7 @@ lemma EvalEnv(e: Expr, n:string, env: map<string, nat>)
     requires n in env.Keys
     ensures Eval(e, env) == Eval(Substitute(e, n, env[n]), env)
 {
-    assert env == env[n := env[n]];
-    calc{
-        Eval(e, env);
-        ==
-        match e
-          case Const(_) => e
-          case Var(s) => if s == n then Const(c) else e
-          case Node(op, args) => Node(op, SubstituteList(args, n, c));
-        == 
-        Eval(Substitute(e, n, env[n]), env);
-    }
+    EvalSubstitute(e, n, env[n], env); // env[n] -> c; Thus gives Eval(e, env[n := env[n]])
+    assert env == env[n := env[n]]; /* Serves as the bridge between EvalEnv and EvalSubstitute
+    * Thus: Eval(e, env[n := env[n]]) == Eval(e, env) */
 }
