@@ -64,30 +64,46 @@ lemma {:induction false} EvalSubstituteList(
 
 // Lemma to prove
 lemma SubstituteIdempotent(e: Expr, n: string, c: nat)
-    ensures Substitute(Substitute(e, n, c), n, c)
-        == Substitute(e, n, c)
-    {
-      match e
-      case Const(_) => 
-      case Var(s) => 
-      case Node(op, args) => calc
-      {
-        Substitute(Substitute(e, n, c), n, c);
-        == // def. Substitute
-        Substitute(Node(op, SubstituteList(args, n, c)), n, c);
-        ==
-        Substitute(e, n, c);
+decreases e // check that e is shrinking
+ensures Substitute(Substitute(e, n, c), n, c)
+    == Substitute(e, n, c)
+{
+  match e
+  case Const(_) => 
+  case Var(s) => 
+  case Node(op, args) => calc
+  {
+    Substitute(Substitute(e, n, c), n, c);
+    // == // def. Substitute (inner)
+    // Substitute(Node(op, SubstituteList(args, n, c)), n, c);
+    // == // def. SubstituteList
+    // Substitute(Node(op, 
+    //   match args
+    //   case Nil => Nil
+    //   case Cons(e', tail) =>
+    //   Cons(
+    //     Substitute(e', n, c), 
+    //     SubstituteList(tail, n, c))), n, c);
 
-      }
-
-
-        // calc
-        // {
-        // Substitute(Substitute(e, n, c), n, c)
-        // == 
-        // Substitute(e, n, c);
-        // }
-    }
+    // == { SubstituteIdempotent(e,n,c); } // This works through the lemma's pattern matching, though it doesn't decrease e.
+    // Substitute(
+    //   Node(op, 
+    //     match args
+    //     case Nil => Nil
+    //     case Cons(e', tail) =>
+    //     Cons(e', 
+    //       SubstituteList(tail, n, c))
+    //   ), 
+    //   n, c
+    // );
+    // == { SubstituteIdempotent(e,n,c); } // Contracting 2nd arg of Node()
+    // Substitute(Node(op, SubstituteList(args, n, c)), n, c);
+    == { SubstituteIdempotent(e,n,c); } // Honestly not sure how this step works here.
+    Node(op, SubstituteList(args, n, c));
+    == // def. Substitute 
+    Substitute(e, n, c);
+  }
+}
 
 /* Do not worry about code below. */
 
