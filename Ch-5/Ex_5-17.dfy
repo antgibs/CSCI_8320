@@ -62,49 +62,32 @@ lemma {:induction false} EvalSubstituteList(
     EvalSubstituteList(tail, op, n, c, env);
 }
 
-// Lemma to prove
+/**** Lemma to prove *****/
 lemma EvalEnvDefault(e: Expr, n: string, env: map<string,nat>)
     requires n !in env.Keys
     ensures Eval(e, env) == Eval(Substitute(e, n, 0), env)
+    decreases e // check that e is shrinking
 {
-    calc
+    match e
+    case Const(_) =>
+    case Var(_) =>
+    case Node(op, args) => calc
     {
-        Eval(Substitute(e, n, 0), env);
-        == // def. Substitute => Var(s)
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => if s == n then Const(0) else e
-            case Node(op, args) => Node(op, SubstituteList(args, n, 0)),
-            env);
-        == // case Var(s) always => e
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => e
-            case Node(op, args) => Node(op, SubstituteList(args, n, 0)),
-            env);
-        == // def. SubstituteList
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => e
-            case Node(op, args) => Node(op, 
-                  match args
-                    case Nil => Nil
-                    case Cons(e, tail) =>
-                        Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))),
-                    env);
-        == // def. Substitute
-        Eval(match e
-            case Const(_) => e
-            case Var(s) => e
-            case Node(op, args) => Node(op, 
-                  match args
-                    case Nil => Nil
-                    case Cons(e, tail) =>
-                        Cons(e, SubstituteList(tail, n, 0))),
-                    env);
-
-        ==
-        Eval(e, env);
+      Eval(Substitute(e, n, 0), env);
+      == // def. Substitute
+      Eval(Node(op, SubstituteList(args, n, 0)), env);
+      // == // def. SubstituteList
+      // Eval(Node(op,
+      //           match args
+      //           case Nil => Nil
+      //           case Cons(e, tail) =>
+      //             Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))), 
+      //           env
+      // );
+      == { EvalEnvDefault(e.args.head, n, env); } // Trying to enter a smaller arg than e to satisfy the decreases clause.
+      Eval(Node(op, Cons(Substitute(e, n, 0), SubstituteList(args, n, 0))), env);
+      == { EvalEnvDefault(e, n, env); }
+      Eval(e, env);
     }
 }
 
