@@ -62,10 +62,11 @@ lemma {:induction false} EvalSubstituteList(
     EvalSubstituteList(tail, op, n, c, env);
 }
 
-// Lemma to prove
+/**** Lemma to prove *****/
 lemma EvalEnvDefault(e: Expr, n: string, env: map<string,nat>)
     requires n !in env.Keys
     ensures Eval(e, env) == Eval(Substitute(e, n, 0), env)
+    decreases e // check that e is shrinking
 {
     match e
     case Const(_) =>
@@ -75,17 +76,17 @@ lemma EvalEnvDefault(e: Expr, n: string, env: map<string,nat>)
       Eval(Substitute(e, n, 0), env);
       == // def. Substitute
       Eval(Node(op, SubstituteList(args, n, 0)), env);
-      == // def. SubstituteList
-      Eval(Node(op,
-                match args
-                case Nil => Nil
-                case Cons(e, tail) =>
-                  Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))), 
-                env
-      );
-      == { EvalEnvDefault(e, n, env); } // Get rid of empty cases
+      // == // def. SubstituteList
+      // Eval(Node(op,
+      //           match args
+      //           case Nil => Nil
+      //           case Cons(e, tail) =>
+      //             Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))), 
+      //           env
+      // );
+      == { EvalEnvDefault(e.args.head, n, env); } // Trying to enter a smaller arg than e to satisfy the decreases clause.
       Eval(Node(op, Cons(Substitute(e, n, 0), SubstituteList(args, n, 0))), env);
-      ==
+      == { EvalEnvDefault(e, n, env); }
       Eval(e, env);
     }
 }
