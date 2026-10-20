@@ -80,8 +80,26 @@ lemma EvalEnvDefault(e: Expr, n: string, env: map<string,nat>)
       Eval(Node(op, SubstituteList(args, n, 0)), env); // Note that Substitute(Node(op, args), n, 0) = Node(op, SubstituteList(args, n, 0))
       == // def. Eval
       EvalList(SubstituteList(args, n, 0), op, env);
-      ==
+      == // def. SubstituteList
+      EvalList(
+        (match args
+        case Nil => Nil
+        case Cons(e, tail) =>
+          Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))),
+        op, env
+      );
 
+      == // Mystery gap
+      
+        (match args
+        case Nil =>
+          (match op case Add => 0 case Mul => 1)
+        case Cons(e, tail) =>
+          var v0, v1 := Eval(e, env), EvalList(tail, op, env);
+          match op
+          case Add => v0 + v1
+          case Mul => v0 * v1);
+      ==
       EvalList(args, op, env);
       == // def. Eval
       Eval(Node(op, args), env);
