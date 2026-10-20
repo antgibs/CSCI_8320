@@ -64,7 +64,6 @@ lemma {:induction false} EvalSubstituteList(
 
 // Lemma to prove
 lemma SubstituteIdempotent(e: Expr, n: string, c: nat)
-decreases e // check that e is shrinking
 ensures Substitute(Substitute(e, n, c), n, c)
     == Substitute(e, n, c)
 {
@@ -74,35 +73,32 @@ ensures Substitute(Substitute(e, n, c), n, c)
   case Node(op, args) => calc
   {
     Substitute(Substitute(e, n, c), n, c);
-    // == // def. Substitute (inner)
-    // Substitute(Node(op, SubstituteList(args, n, c)), n, c);
-    // == // def. SubstituteList
-    // Substitute(Node(op, 
-    //   match args
-    //   case Nil => Nil
-    //   case Cons(e', tail) =>
-    //   Cons(
-    //     Substitute(e', n, c), 
-    //     SubstituteList(tail, n, c))), n, c);
-
-    // == { SubstituteIdempotent(e,n,c); } // This works through the lemma's pattern matching, though it doesn't decrease e.
-    // Substitute(
-    //   Node(op, 
-    //     match args
-    //     case Nil => Nil
-    //     case Cons(e', tail) =>
-    //     Cons(e', 
-    //       SubstituteList(tail, n, c))
-    //   ), 
-    //   n, c
-    // );
-    // == { SubstituteIdempotent(e,n,c); } // Contracting 2nd arg of Node()
-    // Substitute(Node(op, SubstituteList(args, n, c)), n, c);
-    == { SubstituteIdempotent(e,n,c); } // Honestly not sure how this step works here.
-    Node(op, SubstituteList(args, n, c));
+    == // e = Node(op, args)
+    Substitute(Substitute(Node(op, args), n, c), n, c);
     == // def. Substitute 
+    Substitute(Node(op, SubstituteList(args, n, c)), n, c);
+     // def. Substitute
+    Node(op, 
+    SubstituteList(
+      SubstituteList(args, n, c), 
+      n, c));
+    == { SubstituteListIdempotent(args, n, c); }
+    Node(op, SubstituteList(args, n, c));
+    == // def. Substitute
     Substitute(e, n, c);
   }
+}
+
+// Idempotence lemma for SubstituteList
+lemma SubstituteListIdempotent (es: List<Expr>, n: string, c: nat)
+ensures SubstituteList(SubstituteList(es, n, c), n, c) 
+  == SubstituteList(es, n, c)
+{
+  match es
+  case Nil => 
+  case Cons(e, tail) =>
+    SubstituteIdempotent(e, n, c);
+    // SubstituteListIdempotent(tail, n, c);
 }
 
 /* Do not worry about code below. */
