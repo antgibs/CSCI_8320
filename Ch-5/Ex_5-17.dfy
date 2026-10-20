@@ -74,19 +74,18 @@ lemma EvalEnvDefault(e: Expr, n: string, env: map<string,nat>)
     case Node(op, args) => calc
     {
       Eval(Substitute(e, n, 0), env);
+      == // e = Node(op, args)
+      Eval(Substitute(Node(op, args), n, 0), env);
       == // def. Substitute
-      Eval(Node(op, SubstituteList(args, n, 0)), env);
-      // == // def. SubstituteList
-      // Eval(Node(op,
-      //           match args
-      //           case Nil => Nil
-      //           case Cons(e, tail) =>
-      //             Cons(Substitute(e, n, 0), SubstituteList(tail, n, 0))), 
-      //           env
-      // );
-      == { EvalEnvDefault(e.args.head, n, env); } // Trying to enter a smaller arg than e to satisfy the decreases clause.
-      Eval(Node(op, Cons(Substitute(e, n, 0), SubstituteList(args, n, 0))), env);
-      == { EvalEnvDefault(e, n, env); }
+      Eval(Node(op, SubstituteList(args, n, 0)), env); // Note that Substitute(Node(op, args), n, 0) = Node(op, SubstituteList(args, n, 0))
+      == // def. Eval
+      EvalList(SubstituteList(args, n, 0), op, env);
+      ==
+
+      EvalList(args, op, env);
+      == // def. Eval
+      Eval(Node(op, args), env);
+      == // Node(op, args) = e
       Eval(e, env);
     }
 }
