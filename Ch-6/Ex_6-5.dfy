@@ -91,26 +91,39 @@ lemma {:induction false} AppendAssociative<T>(xs: List<T>, ys: List<T>, zs: List
     }
 }
 
-// Exercise 6.5 below
-lemma {:induction false} AppendDecompositioon<T>(a: List<T>, b: List<T>, c: List<T>, d: List<T>)
+
+/* Exercise 6.5 below */
+
+lemma {:induction false} AppendDecomposition<T>(a: List<T>, b: List<T>, c: List<T>, d: List<T>)
 requires Length(a) == Length(c)
 requires Append(a, b) == Append(c, d)
 ensures a == c && b == d
 {
-    calc // Empty calc block satisfies postcondition on automatic induction 
-    {
-        Length(a) == Length(c);
-        ==
-        Length(Append(a, b)) == Length(Append(c, d));
-        ==
-        Length(a) + Length(b) == Length(c) + Length(d);
-        ==
-        Length(a) + Length(b) - Length(c) == Length(d);
-        ==
-        Length(b) == Length(d);
-        ==
-        Append(a, b) == Append(c, d);
-        ==
-        a == c && b == d;
+    match a
+    case Nil => {
+      assert Length(c) == 0;
+      assert c == Nil;
+      assert a == c; // a and c are empty-headed
+      
+      assert Append(a, b) == b;
+      assert Append(c, d) == d;
+
+      assert b == d;
+    } 
+    case Cons(x, xs) => {
+      match c
+      case Nil => // Per the first precondition, this case will never be.
+      case Cons(y, ys) => {
+        assert Append(Cons(x, xs), b) == Append(Cons(y, ys), d); // Substitute a and c in precondition
+        assert Append(xs, b) == Append(ys, d); // remove head of Cons on both sides
+        assert x == y; // heads are equal
+        
+        { AppendDecomposition(xs, b, ys, d);} // Recursively check that heads of substructures are equal 
+        assert b == d; // It follows that the recursion finds each corresponding element in the substructures of Append(xs, b) and Append(ys, d) to be equal.
+
+        // Explicit assertions that a == c
+        assert Cons(x, xs) == Cons(y, ys);
+        assert a == c;
+      }
     }
 }
