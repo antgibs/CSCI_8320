@@ -10,15 +10,23 @@ function Length'<T>(xs: List<T>): nat {
   if xs == Nil then 0 else 1 + Length'(xs.tail)
 }
 
-lemma LengthIsLength'<T>(xs: List<T>)
+lemma {:induction false} LengthIsLength'<T>(xs: List<T>)
 ensures Length(xs) == Length'(xs)
 {
     match xs
     case Nil =>
-    case Cons(_,tail) => calc
+    case Cons(x,tail) => calc
     {
         Length(xs);
         == 
+        Length(Cons(x, tail));
+        == // def. Length
+        1 + Length(tail);
+        == { LengthIsLength'(tail); }
+        1 + Length'(tail);
+        ==
+        Length'(Cons(x, tail));
+        ==
         Length'(xs);
     }
 }
