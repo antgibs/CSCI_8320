@@ -16,6 +16,12 @@ lemma NatUnaryCorrespondence(n: nat, x: Unary)
 {
 }
 
+predicate OldLess(x: Unary, y: Unary) {
+  y != Zero && (x.Suc? ==> Less(x.pred, y.pred))
+}
+
+/* Exercise 7.2 Below */
+
 predicate Less(x: Unary, y: Unary) {
   y != Zero && (x == Zero || (x != Zero && Less(x.pred, y.pred)))
 }
