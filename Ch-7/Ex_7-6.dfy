@@ -136,18 +136,18 @@ ensures Add(Add(x,y),z) == Add(x, Add(y,z))
             case Suc(y') =>
                 calc
                 {
-                    Add(Add(x,y),z);
-                    == { NatUnaryCorrespondence(UnaryToNat(Add(Add(x,y),z)), Add(Add(x,y),z)); } // Convert Unary values into Nat in Unary wrappers
-                    NatToUnary(UnaryToNat(Add(Add(x,y),z)));
-                    == { AddCorrect(Add(x,y), z); }                             // Turn Add into Nat addition
-                    NatToUnary(UnaryToNat(Add(x,y)) + UnaryToNat(z));
-                    == { AddCorrect(x, y); }                                    // Break down expression into addition of 3 Nat values
-                    NatToUnary((UnaryToNat(x) + UnaryToNat(y)) + UnaryToNat(z));
-                    == { AddCorrect(y, z); }                                    // Group y and z 
-                    NatToUnary(UnaryToNat(x) + UnaryToNat(Add(y, z)));
-                    == { AddCorrect(x, Add(y,z)); }                             // Write (Nat y + Nat z) as Add(y, z)
-                    NatToUnary(UnaryToNat(Add(x, Add(y,z))));
-                    == {NatUnaryCorrespondence(UnaryToNat(Add(x, Add(y,z))), Add(x, Add(y,z)));} // Return Nat values to Unary
-                    Add(x, Add(y,z));
+                    Add(Add(x,y), z);
+                    == // def. Add(x,y)
+                    Add(Suc(Add(x, y')), z);
+                    == { SucAdd(Add(x, y'), z); } // Shift Successor function outside
+                    Suc(Add(Add(x, y'), z));
+                    == { AddAssociative(x, y', z);}
+                    Suc(Add(x, Add(y', z)));
+                    == { SucAdd(x, Add(y', z)); } // Shift Successor function inside outer Add function
+                    Add(x, Suc(Add(y', z)));      // Successor function distributes to second argument of Add function
+                    == { SucAdd(y', z); }         // Move Successor function onto y'
+                    Add(x, Add(Suc(y'), z));      // Dafny was smart enough to complete the calculation without this line
+                    == // y = Suc(y')
+                    Add(x, Add(y, z));
                 }
 }
