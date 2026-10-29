@@ -43,9 +43,10 @@ lemma LessTransitive(x: Unary, y: Unary, z: Unary)
 /* Exercise 7.3 below */
 
 lemma {:induction false} LessTrichotomous(x: Unary, y: Unary)
-  ensures  (Less(x,y) && !(x==y) && !(Less(y,x)))       // x < y exlusively 
-        || ((x == y) && !(Less(x,y)) && !(Less(y,x)))   // x == y excluively
-        || (Less(y,x) && !(Less(x,y) && !(x==y)))       // y < x  exclusively
+  // 1 or 3 of them are true:
+  ensures Less(x, y) <==> x == y <==> Less(y, x)
+  // not all 3 are true:
+  ensures !(Less(x, y) && x == y && Less(y, x))
 {
     match x
     case Zero =>    // x has become Zero while y > 0
