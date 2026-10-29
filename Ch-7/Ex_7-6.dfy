@@ -141,9 +141,9 @@ ensures Add(Add(x,y),z) == Add(x, Add(y,z))
                     Add(Suc(Add(x, y')), z);
                     == { SucAdd(Add(x, y'), z); } // Shift Successor function outside
                     Suc(Add(Add(x, y'), z));
-                    == { AddAssociative(x, y', z);}
+                    == { AddAssociative(x, y', z);} // Move inner Add from (x,y') to (y',z)
                     Suc(Add(x, Add(y', z)));
-                    == { SucAdd(x, Add(y', z)); } // Shift Successor function inside outer Add function
+                    == { SucAdd(x, Add(y', z)); } // Shift Successor function into outer Add function
                     Add(x, Suc(Add(y', z)));      // Successor function distributes to second argument of Add function
                     == { SucAdd(y', z); }         // Move Successor function onto y'
                     Add(x, Add(Suc(y'), z));      // Dafny was smart enough to complete the calculation without this line
